@@ -118,13 +118,6 @@ class Stefan {
         let list = el.dataset.list;
         const data = this.getData(list, el);
         /*data.forEach((item, index) => {
-            const copyEl = el.cloneNode(true);
-            copyEl.path = [...el.path];
-            copyEl.path.push(index);
-            copyEl.dataset.list = 'copyed';
-            this.parse(copyEl);
-            el.parentNode.insertBefore(copyEl, el);
-        });*/
         if((el.id != "itime") && (el.id != "notime")) {
             data.forEach((item, index) => {  
                 const copyEl = el.cloneNode(true);
