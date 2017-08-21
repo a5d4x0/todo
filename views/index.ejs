@@ -17,32 +17,83 @@
 </head>
 <body>
 <div id="root">
-  <div>
     <h1 data-model="title"></h1>
-    <button data-onClick="addTask">Add Task</button>
-    <form data-onSubmit="submit", data-class="addShow">
-        <input data-onInput="changeAddContent" placeholder="Content" data-model="addContent"/>
-        <input data-onInput="changeAddTags" placeholder="Tags, separated by comma!" data-model="addTags"/>
-        <input type="submit" value="submit task" />
-    </form>
-    <ul>
-      <li data-list="todos">
-        <p data-model="todos.task"></p>
-        <p data-model="todos.date"></p>
-        <div data-class="todos.status">
-            <span data-onClick="stateWait" class="swait">Wait</span>
-            <span data-onClick="stateDoing" class="sdoing">Doing</span>
-            <span data-onClick="stateDone" class="sdone">Done</span>
-        </div>
-        <ul>
-          <li data-list="todos.tags">
-            <span data-model="todos.tags.name"></span>
-          </li>
-        </ul>
-        <button data-onClick="delTask">Delete Task</button>
-      </li>
-    </ul>
-  </div>
+    <div style="width:400px;float:left;">
+      <h2>任务箱</h2>
+      <div>
+        <button data-onClick="addTask">添加任务</button>
+        <form data-onSubmit="submit", data-class="addShow">
+            <input data-onInput="changeAddContent" placeholder="Content" data-model="addContent"/>
+            <input data-onInput="changeAddTags" placeholder="Tags, separated by comma!" data-model="addTags"/>
+            <select data-onChange="changeTime">
+              <option value ="今日待办">今日待办</option>
+              <option value ="明日待办">明日待办</option>
+              <option value="未来">未来</option>
+            </select>
+            <input type="submit" value="submit task" />
+        </form>
+      </div>
+      <ul>
+        <li id="itime" data-list="todos">
+          <p data-model="todos.task"></p>
+          <p data-model="todos.date"></p>
+          <p data-model="todos.times"></p>
+          <div data-class="todos.status">
+              <span data-onClick="stateWait" class="swait">Wait</span>
+              <span data-onClick="stateDoing" class="sdoing">Doing</span>
+              <span data-onClick="stateDone" class="sdone">Done</span>
+          </div>
+          <ul>
+            <li data-list="todos.tags">
+              <span data-model="todos.tags.name"></span>
+            </li>
+          </ul>
+          <br/>
+          
+          <button data-onClick="delTime">删除待完成时间</button>
+          <br/> <br/>
+          <button data-onClick="delTask">删除任务</button>
+        </li>
+      </ul>
+    </div>
+    <div style="width:400px;float:left;">
+      <h2>临时任务箱</h2>
+      <div>
+      <button data-onClick="addTaskTmp">添加临时任务</button>
+      <form data-onSubmit="submitTmp", data-class="addShowTmp">
+          <input data-onInput="changeAddContentTmp" placeholder="Content" data-model="addContentTmp"/>
+          <input data-onInput="changeAddTagsTmp" placeholder="Tags, separated by comma!" data-model="addTagsTmp"/>
+          <input type="submit" value="submit task" />
+      </form>
+      </div>
+      <ul>  
+        <li id="notime" data-list="todos">
+          <p data-model="todos.task"></p>
+          <p data-model="todos.date"></p>
+          <div data-class="todos.status">
+              <span data-onClick="stateWait" class="swait">Wait</span>
+              <span data-onClick="stateDoing" class="sdoing">Doing</span>
+              <span data-onClick="stateDone" class="sdone">Done</span>
+          </div>
+          <ul>
+            <li data-list="todos.tags">
+              <span data-model="todos.tags.name"></span>
+            </li>
+          </ul>
+          <br/>
+          <form data-onSubmit="submitTime">
+              <select data-onChange="changeTime">
+              <option value ="今日待办">今日待办</option>
+              <option value ="明日待办">明日待办</option>
+              <option value="未来">未来</option>
+            </select>
+            <input type="submit" value="添加待完成时间" />
+          </form>
+          <br/>
+          <button data-onClick="delTask">删除任务</button>
+        </li>
+      </ul>       
+    </div>
 </div>
 <script src="index.js"></script>
 </body>

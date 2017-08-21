@@ -1,14 +1,14 @@
-class Observer {
-
+class Observer{
+    
     constructor(data) {
         this.data = data;
     }
 
     observeArray(arr, callback) {
-        const oam = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
+        const methods = ['push', 'pop', 'shift', 'unshift', 'sort', 'reverse', 'splice'];
         const arrayProto = Array.prototype;
         const delegatePrototype = Object.create(Array.prototype);
-        oam.forEach(method => {
+        methods.forEach(method => {
             Object.defineProperty(delegatePrototype, method, {
                 writable: true,
                 enumerable: true,
@@ -20,7 +20,7 @@ class Observer {
                     return current;
                 }
             });
-        })
+        });
         arr.__proto__ = delegatePrototype;
     }
 
@@ -28,7 +28,7 @@ class Observer {
 
         const data = this.data;
 
-        let val = path.reduce((p, cur) => p = p[cur], data);
+        let  val = path.reduce((p, cur) => p = p[cur], data);
         if(Array.isArray(val)) {
             this.observeArray(val, callback);
         }
@@ -40,18 +40,20 @@ class Observer {
         }
         else {
             const key = path.pop();
-            const obj = path.length ? path.reduce((p, cur) => p = p[cur], data) : data;
+            const obj = path.length ? path.reduce((p, cur) => p = p[cur], data) :data;
+
             Object.defineProperty(obj, key, {
                 enumerable: true,
                 configurable: true,
                 get: () => val,
                 set: current => {
-                    if (current !== val) {
+                    if(current !== val) {
                         callback(current, val);
                     }
                     val = current;
                 }
             });
+
         }
 
     }

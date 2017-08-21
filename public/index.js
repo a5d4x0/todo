@@ -1292,7 +1292,7 @@ fetch('/api/todos').then(function (response) {
     var headers = new Headers();
     headers.append('Content-Type', 'application/json');
 
-    function changeStatus(id, status) {
+    function changeStatus(id, status, data) {
         return fetch('/api/todos/' + id, {
             method: 'PATCH',
             body: (0, _stringify2.default)({
@@ -1309,11 +1309,18 @@ fetch('/api/todos').then(function (response) {
         data: {
             title: 'TODO LIST',
             addShow: 'hide',
+            addShowTmp: 'hide',
             todos: todos
         },
         handlers: {
             addTask: function addTask(e, data) {
                 data.addShow = 'show';
+            },
+            addTaskTmp: function addTaskTmp(e, data) {
+                data.addShowTmp = 'show';
+            },
+            changeTime: function changeTime(e, data) {
+                data.time = e.target.value;
             },
             changeAddContent: function changeAddContent(e, data) {
                 data.addContent = e.target.value;
@@ -1321,31 +1328,41 @@ fetch('/api/todos').then(function (response) {
             changeAddTags: function changeAddTags(e, data) {
                 data.addTags = e.target.value;
             },
+            changeAddContentTmp: function changeAddContentTmp(e, data) {
+                data.addContentTmp = e.target.value;
+            },
+            changeAddTagsTmp: function changeAddTagsTmp(e, data) {
+                data.addTagsTmp = e.target.value;
+            },
             stateWait: function stateWait(e, data, path) {
                 var todo = data[path[0]][path[1]];
-                changeStatus(todo.id, 'wait').then(function (ret) {
+                changeStatus(todo.id, 'wait', data).then(function (ret) {
                     return todo.status = ret.status;
                 });
             },
             stateDoing: function stateDoing(e, data, path) {
                 var todo = data[path[0]][path[1]];
-                changeStatus(todo.id, 'doing').then(function (ret) {
+                changeStatus(todo.id, 'doing', data).then(function (ret) {
                     return todo.status = ret.status;
                 });
             },
             stateDone: function stateDone(e, data, path) {
                 var todo = data[path[0]][path[1]];
-                changeStatus(todo.id, 'done').then(function (ret) {
+                changeStatus(todo.id, 'done', data).then(function (ret) {
                     return todo.status = ret.status;
                 });
             },
             submit: function submit(e, data) {
                 e.preventDefault();
+                var times = data.time;
+                if (times == null) times = "今日待办";
+                console.log("添加任务" + times);
                 fetch('/api/todos', {
                     method: 'POST',
                     body: (0, _stringify2.default)({
                         tags: data.addTags,
-                        task: data.addContent
+                        task: data.addContent,
+                        times: times
                     }),
                     headers: headers
                 }).then(function (response) {
@@ -1354,9 +1371,64 @@ fetch('/api/todos').then(function (response) {
                     data.todos.push(todo);
                     data.addShow = 'hide';
                 });
+                location.reload();
+            },
+            submitTmp: function submitTmp(e, data) {
+                e.preventDefault();
+                var times = "";
+                fetch('/api/todos', {
+                    method: 'POST',
+                    body: (0, _stringify2.default)({
+                        tags: data.addTagsTmp,
+                        task: data.addContentTmp,
+                        times: times
+                    }),
+                    headers: headers
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (todo) {
+                    data.todos.push(todo);
+                    data.addShowTmp = 'hide';
+                });
+            },
+            submitTime: function submitTime(e, data, path) {
+                e.preventDefault();
+                var times = data.time;
+                if (times == null) times = "今日待办";
+                var todo = data[path[0]][path[1]];
+
+                fetch('/api/todos/' + todo.id, {
+                    method: 'PATCH',
+                    body: (0, _stringify2.default)({
+                        times: times
+                    }),
+                    headers: headers
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (ret) {
+                    return todo.times = ret.times;
+                });
+                location.reload();
+            },
+            delTime: function delTime(e, data, path) {
+                e.preventDefault();
+                var times = "";
+                var todo = data[path[0]][path[1]];
+                fetch('/api/todos/' + todo.id, {
+                    method: 'PATCH',
+                    body: (0, _stringify2.default)({
+                        times: times
+                    }),
+                    headers: headers
+                }).then(function (response) {
+                    return response.json();
+                });
+                todo.times = "";
+                location.reload();
             },
             delTask: function delTask(e, data, path) {
                 var todo = data[path[0]][path[1]];
+
                 return fetch('/api/todos/' + todo.id, {
                     method: 'DELETE'
                 }).then(function (response) {
@@ -1418,10 +1490,10 @@ var Observer = function () {
     (0, _createClass3.default)(Observer, [{
         key: 'observeArray',
         value: function observeArray(arr, callback) {
-            var oam = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
+            var methods = ['push', 'pop', 'shift', 'unshift', 'sort', 'reverse', 'splice'];
             var arrayProto = Array.prototype;
             var delegatePrototype = (0, _create2.default)(Array.prototype);
-            oam.forEach(function (method) {
+            methods.forEach(function (method) {
                 (0, _defineProperty2.default)(delegatePrototype, method, {
                     writable: true,
                     enumerable: true,
@@ -1465,6 +1537,7 @@ var Observer = function () {
                 var obj = path.length ? path.reduce(function (p, cur) {
                     return p = p[cur];
                 }, data) : data;
+
                 (0, _defineProperty2.default)(obj, key, {
                     enumerable: true,
                     configurable: true,
@@ -1492,13 +1565,13 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _getIterator2 = require('babel-runtime/core-js/get-iterator');
-
-var _getIterator3 = _interopRequireDefault(_getIterator2);
-
 var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
 var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
+var _getIterator2 = require('babel-runtime/core-js/get-iterator');
+
+var _getIterator3 = _interopRequireDefault(_getIterator2);
 
 var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
 
@@ -1514,6 +1587,14 @@ var _Observer2 = _interopRequireDefault(_Observer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/*
+new Stefan({
+    el: '#root',
+    data: {},
+    handlers:{}
+});
+*/
+
 var Stefan = function () {
     function Stefan(config) {
         (0, _classCallCheck3.default)(this, Stefan);
@@ -1523,6 +1604,7 @@ var Stefan = function () {
         this.data = config.data;
         this.observer = new _Observer2.default(this.data);
         this.handlers = config.handlers;
+        //解析模板入口
         this.parse(this.frag);
         this.el.appendChild(this.frag);
     }
@@ -1537,6 +1619,9 @@ var Stefan = function () {
             }
             return fragment;
         }
+
+        //el.path: ['todos', 0, 'tags', 1]
+
     }, {
         key: 'getData',
         value: function getData(str, el) {
@@ -1571,44 +1656,11 @@ var Stefan = function () {
             return data;
         }
     }, {
-        key: 'parseList',
-        value: function parseList(el) {
-            var _this2 = this;
-
-            var list = el.dataset.list;
-            var data = this.getData(list, el);
-            data.forEach(function (item, index) {
-                var copyEl = el.cloneNode(true);
-                copyEl.path = [].concat((0, _toConsumableArray3.default)(el.path));
-                copyEl.path.push(index);
-                copyEl.dataset.list = 'copyed';
-                _this2.parse(copyEl);
-                el.parentNode.insertBefore(copyEl, el);
-            });
-            el.pNode = el.parentNode;
-            el.parentNode.removeChild(el);
-        }
-    }, {
-        key: 'parseClass',
-        value: function parseClass(el, current, old) {
-            old && el.classList.remove(old);
-            el.classList.add(current);
-        }
-    }, {
-        key: 'parseModel',
-        value: function parseModel(el, val) {
-            if (val === undefined) return;
-            if (el.tagName === 'INPUT') {
-                el.value = val;
-            } else {
-                el.innerText = val;
-            }
-        }
-    }, {
         key: 'parse',
         value: function parse(el) {
-            var _this3 = this;
+            var _this2 = this;
 
+            //data-list
             if (el.dataset && el.dataset.list && el.dataset.list != 'copyed') {
                 this.parseList(el);
                 this.observer.observe(el.path, function (current) {
@@ -1616,7 +1668,7 @@ var Stefan = function () {
                         el.pNode.removeChild(el.pNode.firstChild);
                     }
                     el.pNode.appendChild(el);
-                    _this3.parseList(el);
+                    _this2.parseList(el);
                 });
             } else {
                 var _iteratorNormalCompletion = true;
@@ -1634,38 +1686,38 @@ var Stefan = function () {
                         var val = '';
                         var dataset = child.dataset || {};
 
+                        //data-class, data-model, data-onEvent
                         for (attr in dataset) {
                             val = dataset[attr];
-                            if (attr == 'class') {
+                            if (attr == 'model') {
+                                _this2.parseModel(child, _this2.getData(val, child));
+                                delete child.dataset.model;
+                                _this2.observer.observe(child.path, function (current) {
+                                    return _this2.parseModel(child, current);
+                                });
+                            } else if (attr == 'class') {
                                 if (!child.classList.contains(val)) {
-                                    _this3.parseClass(child, _this3.getData(val, child));
+                                    _this2.parseClass(child, _this2.getData(val, child));
                                 }
                                 delete child.dataset.class;
-                                _this3.observer.observe(child.path, function (current, old) {
-                                    return _this3.parseClass(child, current, old);
+                                _this2.observer.observe(child.path, function (current, old) {
+                                    return _this2.parseClass(child, current, old);
                                 });
-                            } else if (attr == 'model') {
-                                _this3.parseModel(child, _this3.getData(val, child));
-                                delete child.dataset.model;
-                                _this3.observer.observe(child.path, function (current) {
-                                    return _this3.parseModel(child, current);
-                                });
-                            }
+                            } else {
+                                var eventMatch = attr.match(/^on(\w+)$/);
+                                if (eventMatch) {
+                                    (function () {
+                                        var cb = _this2.handlers[val];
 
-                            var eventMatch = attr.match(/^on(\w+)$/);
-                            if (eventMatch) {
-                                (function () {
-                                    var cb = _this3.handlers[val];
-                                    // delete child.dataset[attr];
-                                    child.addEventListener(eventMatch[1].toLowerCase(), function (e) {
-                                        return cb(e, _this3.data, child.path);
-                                    });
-                                })();
+                                        child.addEventListener(eventMatch[1].toLowerCase(), function (e) {
+                                            return cb(e, _this2.data, child.path);
+                                        });
+                                    })();
+                                }
                             }
                         }
-
                         if (child.children.length && child.dataset.list != 'copyed') {
-                            _this3.parse(child);
+                            _this2.parse(child);
                         }
                     };
 
@@ -1686,6 +1738,72 @@ var Stefan = function () {
                         }
                     }
                 }
+            }
+        }
+
+        //处理列表
+
+    }, {
+        key: 'parseList',
+        value: function parseList(el) {
+            var _this3 = this;
+
+            var list = el.dataset.list;
+            var data = this.getData(list, el);
+            /*data.forEach((item, index) => {
+                const copyEl = el.cloneNode(true);
+                copyEl.path = [...el.path];
+                copyEl.path.push(index);
+                copyEl.dataset.list = 'copyed';
+                this.parse(copyEl);
+                el.parentNode.insertBefore(copyEl, el);
+            });*/
+            if (el.id != "itime" && el.id != "notime") {
+                data.forEach(function (item, index) {
+                    var copyEl = el.cloneNode(true);
+                    copyEl.path = [].concat((0, _toConsumableArray3.default)(el.path));
+                    copyEl.path.push(index);
+                    copyEl.dataset.list = 'copyed';
+                    _this3.parse(copyEl);
+                    el.parentNode.insertBefore(copyEl, el);
+                });
+            } else {
+                data.forEach(function (item, index) {
+                    if (el.id == "itime" && item.times != "" || el.id == "notime" && item.times == "") {
+                        console.log("item: " + item.times);
+                        console.log("index: " + index);
+                        var copyEl = el.cloneNode(true);
+                        copyEl.path = [].concat((0, _toConsumableArray3.default)(el.path));
+                        copyEl.path.push(index);
+                        copyEl.dataset.list = 'copyed';
+                        _this3.parse(copyEl);
+                        el.parentNode.insertBefore(copyEl, el);
+                    }
+                });
+            }
+            el.pNode = el.parentNode;
+            el.parentNode.removeChild(el);
+        }
+
+        //处理类
+
+    }, {
+        key: 'parseClass',
+        value: function parseClass(el, current, old) {
+            old && el.classList.remove(old);
+            el.classList.add(current);
+        }
+
+        //处理值
+
+    }, {
+        key: 'parseModel',
+        value: function parseModel(el, val) {
+            if (val === undefined) return;
+            if (el.tagName === 'INPUT') {
+                el.value = val;
+            } else {
+                el.innerText = val;
             }
         }
     }]);
