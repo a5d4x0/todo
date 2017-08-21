@@ -117,7 +117,6 @@ class Stefan {
     parseList(el) {
         let list = el.dataset.list;
         const data = this.getData(list, el);
-        /*data.forEach((item, index) => {
         if((el.id != "itime") && (el.id != "notime")) {
             data.forEach((item, index) => {  
                 const copyEl = el.cloneNode(true);
