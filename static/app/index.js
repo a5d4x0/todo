@@ -1,4 +1,4 @@
-import Stefan from '../framework';
+import Xtodo from '../framework';
 
 fetch('/api/todos')
 .then(response =>response.json())
@@ -18,12 +18,15 @@ fetch('/api/todos')
         .then(response =>response.json());
     }
 
-    new Stefan({
+    new Xtodo({
         el: '#root', 
         data: {
             title: 'TODO LIST',
             addShow: 'hide',
             addShowTmp: 'hide',
+            tagShow: 'tagclick',
+            delListContent: '',
+            tagcluster:'yoyoyo',
             todos
         },
         handlers: {
@@ -32,6 +35,17 @@ fetch('/api/todos')
             },
             addTaskTmp: (e, data) => {
                 data.addShowTmp = 'show';
+            },
+            changeAddListTag: (e, data) => {
+                data.addListContent = e.target.value;
+            },
+            changeDelListTag: (e, data, path) => {
+                data.delListContent = e.target.innerHTML;
+                let eText = document.getElementById("delText");
+                eText.innerText = " " + data.delListContent;
+            },
+            changeModifyListTag: (e, data) => {
+                data.modifyListContent = e.target.value;
             },
             changeTime: (e, data) => {
                  data.time = e.target.value;
@@ -65,7 +79,7 @@ fetch('/api/todos')
                 let times = data.time;
                 if(times == null)
                     times = "今日待办";
-                console.log("添加任务" + times);
+
                 fetch('/api/todos', {
                     method: 'POST',
                     body: JSON.stringify({
@@ -82,9 +96,61 @@ fetch('/api/todos')
                 });
                 location.reload();
             },
+            addListTag: (e, data, path) => {
+                e.preventDefault();
+                let todo = data[path[0]][path[1]];
+                todo.tags.push(data.addListContent.split(',').map(name => ({name}))[0]);
+                let tags = todo.tags;
+                fetch('/api/todos/' + todo.id, {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        tags
+                    }),
+                    headers
+                })
+                .then(response =>response.json())
+                .then(ret => todo.tags = ret.tags);
+                location.reload();
+            },
+            delListTag: (e, data, path) => {
+                e.preventDefault();
+                let todo = data[path[0]][path[1]];
+                const searchTag = todo.tags.filter(tag => tag.name == data.delListContent)[0];
+                todo.tags.splice(todo.tags.indexOf(searchTag), 1);
+                let tags = todo.tags;
+                fetch('/api/todos/' + todo.id, {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        tags
+                    }),
+                    headers
+                })
+                .then(response =>response.json())
+                .then(ret => todo.tags = ret.tags);
+                location.reload();
+            },
+            modifyListTag: (e, data, path) => {
+                e.preventDefault();
+                let todo = data[path[0]][path[1]];
+                const searchTag = todo.tags.filter(tag => tag.name == data.delListContent)[0];
+                todo.tags.splice(todo.tags.indexOf(searchTag), 1, data.modifyListContent.split(',').map(name => ({name}))[0]);
+             
+                let tags = todo.tags;
+                fetch('/api/todos/' + todo.id, {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        tags
+                    }),
+                    headers
+                })
+                .then(response =>response.json())
+                .then(ret => todo.tags = ret.tags);
+                location.reload();
+            },
             submitTmp: (e, data) => {
                 e.preventDefault();
                 let times = "";
+
                 fetch('/api/todos', {
                     method: 'POST',
                     body: JSON.stringify({

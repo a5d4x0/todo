@@ -117,30 +117,60 @@ class Stefan {
     parseList(el) {
         let list = el.dataset.list;
         const data = this.getData(list, el);
-        if((el.id != "itime") && (el.id != "notime")) {
-            data.forEach((item, index) => {  
-                const copyEl = el.cloneNode(true);
-                copyEl.path = [...el.path];
-                copyEl.path.push(index);
-                copyEl.dataset.list = 'copyed';
-                this.parse(copyEl);
-                el.parentNode.insertBefore(copyEl, el);            
-            });
-        } else {
-                data.forEach((item, index) => {
-                    if(((el.id == "itime") && (item.times != "")) ||
-                    ((el.id == "notime") && (item.times == ""))) {
-                        console.log("item: " + item.times);
-                        console.log("index: " + index);
-                        const copyEl = el.cloneNode(true);
-                        copyEl.path = [...el.path];
-                        copyEl.path.push(index);
-                        copyEl.dataset.list = 'copyed';
-                        this.parse(copyEl);
-                        el.parentNode.insertBefore(copyEl, el);  
-                    }          
+       if(el.id == "tagTask") {
+            var comptag = [];
+            var colorlist = ["#d0d0d0", "#B9B9FF" , "#CF9E9E" ,
+                                "#ff7575" , "#BBFFFF" , "#FFD1A4" , "#D3FF93"];
+            data.forEach((item, index) => {
+                console.log("item: " + item.task);                
+                item.tags.forEach((iname, iindex) => {
+                      comptag.push(iname.name);
                 });
+            });
+            //标签聚类
+            comptag = Array.from(new Set(comptag));
+            comptag.forEach((ctag, itag) => {
+                data.forEach((item, index) => {
+                    console.log("item: " + item.task);                
+                    item.tags.forEach((iname, iindex) => {
+                        if(ctag == iname.name) {
+                            el.style.background = colorlist[itag%7];
+                            const copyEl = el.cloneNode(true);
+                            copyEl.path = [...el.path];
+                            copyEl.path.push(index);
+                            copyEl.dataset.list = 'copyed';
+                            this.parse(copyEl);
+                            this.data.tagcluster = iname.name;
+                            el.parentNode.insertBefore(copyEl, el); 
+                        }     
+                    });
+                });
+            });       
+        } else {//任务箱与临时任务箱的分类
+            if((el.id != "itime") && (el.id != "notime")) {
+                data.forEach((item, index) => {  
+                    const copyEl = el.cloneNode(true);
+                    copyEl.path = [...el.path];
+                    copyEl.path.push(index);
+                    copyEl.dataset.list = 'copyed';
+                    this.parse(copyEl);
+                    el.parentNode.insertBefore(copyEl, el);            
+                });
+            } else {
+                    data.forEach((item, index) => {
+                        if(((el.id == "itime") && (item.times != "")) ||
+                        ((el.id == "notime") && (item.times == ""))) {
+                            const copyEl = el.cloneNode(true);
+                            copyEl.path = [...el.path];
+                            copyEl.path.push(index);
+                            copyEl.dataset.list = 'copyed';
+                            this.parse(copyEl);
+                            el.parentNode.insertBefore(copyEl, el);  
+                        }          
+                    });
+            }
         }
+       
         el.pNode = el.parentNode;
         el.parentNode.removeChild(el);
     }
